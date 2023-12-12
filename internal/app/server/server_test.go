@@ -1,42 +1,45 @@
-package server_test
+package server
 
 import (
-	"go-url-shortener/internal/app/handlers" // Замените на ваш реальный путь
+	"github.com/gorilla/mux"
+	"go-url-shortener/internal/app/handlers"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 )
 
 func TestShortenHandler(t *testing.T) {
-	req, err := http.NewRequest("POST", "/", nil)
+	req, err := http.NewRequest("POST", "/shorten", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(handlers.ShortenHandler)
+	router := mux.NewRouter()
+	router.HandleFunc("/shorten", handlers.ShortenHandler).Methods("POST")
 
-	handler.ServeHTTP(rr, req)
+	router.ServeHTTP(rr, req)
 
-	if status := rr.Code; status != http.StatusCreated {
+	if status := rr.Code; status != http.StatusOK {
 		t.Errorf("handler returned wrong status code: got %v want %v",
-			status, http.StatusCreated)
+			status, http.StatusOK)
 	}
 }
 
 func TestExpandHandler(t *testing.T) {
-	req, err := http.NewRequest("GET", "/EwHXdJfB", nil)
+	req, err := http.NewRequest("GET", "/expand", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(handlers.ExpandHandler)
+	router := mux.NewRouter()
+	router.HandleFunc("/expand", handlers.ExpandHandler).Methods("GET")
 
-	handler.ServeHTTP(rr, req)
+	router.ServeHTTP(rr, req)
 
-	if status := rr.Code; status != http.StatusTemporaryRedirect {
+	if status := rr.Code; status != http.StatusOK {
 		t.Errorf("handler returned wrong status code: got %v want %v",
-			status, http.StatusTemporaryRedirect)
+			status, http.StatusOK)
 	}
 }

@@ -1,36 +1,15 @@
-package main
+package server
 
 import (
-	"fmt"
-	"log"
+	"github.com/gorilla/mux"
+	"go-url-shortener/internal/app/handlers" // Замените на ваш реальный путь
 	"net/http"
 )
 
-func main() {
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == http.MethodPost {
-			if _, err := fmt.Fprint(w, "http://localhost:8080/EwHXdJfB"); err != nil {
-				http.Error(w, "Failed to write the response", http.StatusInternalServerError)
-				return
-			}
-			w.WriteHeader(http.StatusCreated)
-			return
-		}
+func SetupRoutes() {
+	router := mux.NewRouter()
+	router.HandleFunc("/shorten", handlers.ShortenHandler).Methods("POST")
+	router.HandleFunc("/expand", handlers.ExpandHandler).Methods("GET")
 
-		http.Error(w, "Invalid request", http.StatusBadRequest)
-	})
-
-	http.HandleFunc("/EwHXdJfB", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == http.MethodGet {
-			w.Header().Set("Location", "https://practicum.yandex.ru/")
-			w.WriteHeader(http.StatusTemporaryRedirect)
-			return
-		}
-
-		http.Error(w, "Invalid request", http.StatusBadRequest)
-	})
-
-	if err := http.ListenAndServe(":8080", nil); err != nil {
-		log.Fatal(err)
-	}
+	http.Handle("/", router)
 }
