@@ -1,17 +1,23 @@
 package main
 
 import (
-	"fmt"
-	"go-url-shortener/internal/app/config" // Замените на ваш путь к пакету config
+	"flag"
+	"go-url-shortener/internal/app/config"
+	"go-url-shortener/internal/app/server"
 )
 
 func main() {
-	cfg := config.InitConfig()
+	serverAddress := flag.String("a", "localhost:8080", "HTTP-сервер адрес")
+	baseURL := flag.String("b", "http://localhost:8080", "Базовый адрес для сокращения URL")
+	flag.Parse()
 
-	// Дальнейшая логика вашего приложения, использующая cfg
-	fmt.Println("Server address:", cfg.Address)
-	fmt.Println("Base URL:", cfg.BaseURL)
-	fmt.Println("Environment:", cfg.Environment)
+	conf := config.NewConfig()
+	configureFromFlags(conf, *serverAddress, *baseURL)
 
-	// Запуск сервера и т.д.
+	server.StartServer()
+}
+
+func configureFromFlags(conf *config.Config, serverAddress, baseURL string) {
+	conf.ServerAddress = serverAddress
+	conf.BaseURL = baseURL
 }

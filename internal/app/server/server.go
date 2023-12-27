@@ -1,15 +1,14 @@
 package server
 
 import (
+	"net/http"
+
 	"go-url-shortener/internal/app/config"
 	"go-url-shortener/internal/app/handlers"
-	"net/http"
 )
 
 func StartServer() {
 	conf := config.NewConfig()
-
-	// ...
 
 	SetupRoutes()
 
