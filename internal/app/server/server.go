@@ -1,3 +1,4 @@
+// server.go
 package server
 
 import (
@@ -8,10 +9,13 @@ import (
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/gorilla/mux"
 )
 
 var logger *zap.Logger
 
+// InitializeLogger инициализирует логгер.
 func InitializeLogger() {
 	var err error
 	logger, err = zap.NewProduction()
@@ -23,6 +27,7 @@ func InitializeLogger() {
 	}()
 }
 
+// StartServer запускает сервер.
 func StartServer() {
 	InitializeLogger()
 
@@ -35,14 +40,16 @@ func StartServer() {
 	}
 }
 
+// SetupRoutes настраивает маршруты сервера.
 func SetupRoutes() {
-	router := http.NewServeMux()
-	router.HandleFunc("/shorten", handlers.ShortenHandler)
-	router.HandleFunc("/expand", handlers.ExpandHandler)
+	router := mux.NewRouter()
+	router.HandleFunc("/api/shorten", handlers.ShortenHandler).Methods("POST")
+	router.HandleFunc("/expand", handlers.ExpandHandler).Methods("GET")
 
 	http.Handle("/", LoggerMiddleware(router))
 }
 
+// LoggerMiddleware предоставляет middleware для логирования запросов.
 func LoggerMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
@@ -68,4 +75,10 @@ func LoggerMiddleware(next http.Handler) http.Handler {
 			zap.Duration("Duration", time.Since(start)),
 		)
 	})
+}
+
+// GetShortURL генерирует короткую ссылку.
+func GetShortURL(originalURL string) string {
+	// Вставьте ваш код для генерации короткой ссылки здесь.
+	return "http://example.com/shortURL"
 }
