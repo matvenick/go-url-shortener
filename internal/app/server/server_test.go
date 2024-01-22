@@ -1,5 +1,4 @@
-// internal/app/server/server_test.go
-
+// Package server предоставляет тесты для основных компонентов HTTP-сервера.
 package server
 
 import (

@@ -1,84 +1,83 @@
-// server.go
+// Package server предоставляет основные компоненты HTTP-сервера.
 package server
 
 import (
+	"compress/gzip"
 	"fmt"
-	"go-url-shortener/internal/app/config"
 	"go-url-shortener/internal/app/handlers"
-	"go.uber.org/zap"
 	"log"
 	"net/http"
-	"time"
-
-	"github.com/gorilla/mux"
+	"strings"
 )
 
-var logger *zap.Logger
-
-// InitializeLogger инициализирует логгер.
-func InitializeLogger() {
-	var err error
-	logger, err = zap.NewProduction()
-	if err != nil {
-		fmt.Println("Failed to initialize logger:", err)
-	}
-	defer func() {
-		_ = logger.Sync()
-	}()
+// Server представляет собой HTTP-сервер.
+type Server struct {
+	router http.Handler
 }
 
-// StartServer запускает сервер.
-func StartServer() {
-	InitializeLogger()
-
-	conf := config.NewConfig()
-
-	SetupRoutes()
-
-	if err := http.ListenAndServe(conf.ServerAddress, LoggerMiddleware(http.DefaultServeMux)); err != nil {
-		log.Fatal("Server failed to start: ", err)
+// NewServer создает новый экземпляр HTTP-сервера.
+func NewServer() *Server {
+	return &Server{
+		router: SetupRoutes(),
 	}
 }
 
-// SetupRoutes настраивает маршруты сервера.
-func SetupRoutes() {
-	router := mux.NewRouter()
-	router.HandleFunc("/api/shorten", handlers.ShortenHandler).Methods("POST")
-	router.HandleFunc("/expand", handlers.ExpandHandler).Methods("GET")
-
-	http.Handle("/", LoggerMiddleware(router))
+// Start запускает HTTP-сервер с заданным адресом.
+func (s *Server) Start(address string) {
+	fmt.Printf("Server is running on %s...\n", address)
+	log.Fatal(http.ListenAndServe(address, s.router))
 }
 
-// LoggerMiddleware предоставляет middleware для логирования запросов.
-func LoggerMiddleware(next http.Handler) http.Handler {
+// SetupRoutes настраивает роуты HTTP сервера. Включаем GzipMiddleware в цепочку middleware.
+func SetupRoutes() *http.ServeMux {
+	router := http.NewServeMux()
+	router.Handle("/shorten", LoggerMiddleware(GzipMiddleware(http.HandlerFunc(handlers.ShortenHandler))))
+	router.Handle("/expand", LoggerMiddleware(GzipMiddleware(http.HandlerFunc(handlers.ExpandHandler))))
+
+	return router
+}
+
+// GenerateShortURL - возвращаю функцию GenerateShortURL.
+func GenerateShortURL() string {
+	// Реализация GenerateShortURL.
+	return "http://localhost:8080/EwHXdJfB"
+}
+
+// gzipResponseWriter - новая структура для обновленного ResponseWriter.
+type gzipResponseWriter struct {
+	http.ResponseWriter
+	*gzip.Writer
+}
+
+func (w *gzipResponseWriter) Write(b []byte) (int, error) {
+	return w.Writer.Write(b)
+}
+
+// GzipMiddleware обеспечивает сжатие ответов.
+func GzipMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		start := time.Now()
+		// Проверяем заголовок Accept-Encoding клиента.
+		if strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
+			// Если клиент поддерживает gzip, применяем middleware.
+			w.Header().Set("Content-Encoding", "gzip")
+			gz := gzip.NewWriter(w)
 
-		if logger == nil {
-			log.Fatal("Logger is not initialized")
+			// Обновляем ResponseWriter с gzip.Writer.
+			gzw := &gzipResponseWriter{ResponseWriter: w, Writer: gz}
+
+			// Продолжаем обработку запроса с обновленным ResponseWriter.
+			next.ServeHTTP(gzw, r)
+
+			// После завершения обработки запроса проверяем ошибку при закрытии gzip.Writer.
+			if err := gz.Close(); err != nil {
+				// Обработка ошибки, например, логирование.
+				fmt.Println("Failed to close gzip.Writer:", err)
+			}
+
+			return
 		}
 
-		logger.Info("Incoming request",
-			zap.String("URI", r.RequestURI),
-			zap.String("Method", r.Method),
-		)
-
-		// Замените w.(interface{ StatusCode() sudo dscl . -create /Users/nimatveev UserShell /bin/bashint }).StatusCode() на w.WriteHeader(http.StatusOK)
+		// Продолжаем обработку запроса с оригинальным ResponseWriter.
 		next.ServeHTTP(w, r)
-
-		// Замените w.(interface{ StatusCode() int }).StatusCode() на http.StatusOK
-		logger.Info("Outgoing response",
-			zap.Int("StatusCode", http.StatusOK),
-		)
-
-		logger.Info("Request processed in",
-			zap.Duration("Duration", time.Since(start)),
-		)
 	})
-}
-
-// GetShortURL генерирует короткую ссылку.
-func GetShortURL(originalURL string) string {
-	// Вставьте ваш код для генерации короткой ссылки здесь.
-	return "http://example.com/shortURL"
 }

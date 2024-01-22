@@ -14,7 +14,8 @@ func main() {
 	conf := config.NewConfig()
 	configureFromFlags(conf, *serverAddress, *baseURL)
 
-	server.StartServer()
+	srv := server.NewServer()
+	srv.Start(*serverAddress)
 }
 
 func configureFromFlags(conf *config.Config, serverAddress, baseURL string) {

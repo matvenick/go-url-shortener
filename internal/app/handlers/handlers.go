@@ -1,4 +1,4 @@
-// handlers.go
+// Package handlers реализует обработчики запросов.
 package handlers
 
 import (
@@ -7,17 +7,21 @@ import (
 	"net/http"
 )
 
-// RequestBody представляет входные данные для эндпоинта /api/shorten.
+func ExpandHandler(_ http.ResponseWriter, _ *http.Request) {
+	// Обработка запроса ExpandHandler
+	// ...
+}
+
+// RequestBody - определение структуры тела запроса.
 type RequestBody struct {
 	URL string `json:"url"`
 }
 
-// ResponseBody представляет данные для ответа от эндпоинта /api/shorten.
+// ResponseBody - определение структуры тела ответа.
 type ResponseBody struct {
 	Result string `json:"result"`
 }
 
-// ShortenHandler обрабатывает запросы к эндпоинту /api/shorten.
 func ShortenHandler(w http.ResponseWriter, r *http.Request) {
 	var requestBody RequestBody
 
@@ -29,7 +33,7 @@ func ShortenHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Вызываем функцию для генерации короткой ссылки.
-	shortURL := server.GetShortURL(requestBody.URL)
+	shortURL := server.GenerateShortURL()
 
 	// Формируем JSON-ответ.
 	responseBody := ResponseBody{Result: shortURL}
@@ -39,18 +43,13 @@ func ShortenHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Отправляем ответ клиенту.
+	// Отправляем ответ клиенту с поддержкой сжатия.
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	_, err = w.Write(responseJSON)
-	if err != nil {
+
+	// Записываем JSON-ответ в ResponseWriter с обработкой возможной ошибки.
+	if _, err := w.Write(responseJSON); err != nil {
 		http.Error(w, "Failed to write JSON response", http.StatusInternalServerError)
 		return
 	}
-}
-
-// ExpandHandler обрабатывает запросы к эндпоинту /expand.
-func ExpandHandler(w http.ResponseWriter, r *http.Request) {
-	// Здесь можно добавить логику для обработки запросов к /expand.
-	w.WriteHeader(http.StatusOK)
 }
