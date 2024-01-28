@@ -3,8 +3,9 @@ package config
 import "os"
 
 type Config struct {
-	ServerAddress string
-	BaseURL       string
+	ServerAddress string `json:"server_address,omitempty"`
+	BaseURL       string `json:"base_url,omitempty"`
+	FilePath      string `json:"file_path,omitempty"`
 }
 
 func NewConfig() *Config {

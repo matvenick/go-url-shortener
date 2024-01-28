@@ -64,7 +64,10 @@ func TestExpandHandler(t *testing.T) {
 
 		// Используем mux.Router для настройки роутинга.
 		router := mux.NewRouter()
-		router.HandleFunc("/expand", handlers.ExpandHandler).Methods("GET")
+		router.HandleFunc(
+			"/expand",
+			handlers.ExpandHandler,
+		).Methods("GET")
 
 		// Тестируем запрос.
 		rr := httptest.NewRecorder()
