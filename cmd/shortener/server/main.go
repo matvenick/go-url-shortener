@@ -33,3 +33,5 @@ func flagOrEnv(flagName, envVarName, fallbackValue, description string) *string 
 	}
 	return flag.String(flagName, fallbackValue, description)
 }
+
+//тест коммент
