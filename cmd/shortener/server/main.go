@@ -9,7 +9,7 @@ import (
 func main() {
 	serverAddress := flag.String("a", "localhost:8080", "HTTP-сервер адрес")
 	baseURL := flag.String("b", "http://localhost:8080", "Базовый адрес для сокращения URL")
-	filePath := flag.String("f", "/tmp/short-url-db.json", "Путь к файлу для сохранения данных")
+	filePath := flag.String("f", "C:/tmp/short-url-db.json", "Путь к файлу для сохранения данных")
 	flag.Parse()
 
 	conf := config.NewConfig()

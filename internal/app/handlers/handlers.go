@@ -3,8 +3,10 @@ package handlers
 
 import (
 	"encoding/json"
-	"go-url-shortener/internal/app/server"
+	"fmt"
 	"net/http"
+
+	"math/rand/v2"
 )
 
 func ExpandHandler(_ http.ResponseWriter, _ *http.Request) {
@@ -33,7 +35,7 @@ func ShortenHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Вызываем функцию для генерации короткой ссылки.
-	shortURL := server.GenerateShortURL()
+	shortURL := generateShortURL()
 
 	// Формируем JSON-ответ.
 	responseBody := ResponseBody{Result: shortURL}
@@ -52,4 +54,27 @@ func ShortenHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to write JSON response", http.StatusInternalServerError)
 		return
 	}
+}
+
+// generateShortURL - возвращаю функцию generateShortURL.
+func generateShortURL() string {
+	// Реализация GenerateShortURL.
+	return fmt.Sprintf("http://localhost:8080/%v", genRandomString())
+}
+
+func genRandomString() string {
+	res := ""
+	for i := 0; i < 8; i++ {
+		res += string(genRandomRune())
+	}
+	return res
+}
+
+func genRandomRune() rune {
+	isUpper := rand.IntN(2) == 0
+	symbol := rand.IntN(26)
+	if isUpper {
+		return rune(symbol + 'A')
+	}
+	return rune(symbol + 'a')
 }

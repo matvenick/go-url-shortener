@@ -82,12 +82,6 @@ func SetupRoutes() http.Handler {
 	return router
 }
 
-// GenerateShortURL - возвращаю функцию GenerateShortURL.
-func GenerateShortURL() string {
-	// Реализация GenerateShortURL.
-	return "http://localhost:8080/EwHXdJfB"
-}
-
 // gzipResponseWriter - новая структура для обновленного ResponseWriter.
 type gzipResponseWriter struct {
 	http.ResponseWriter
@@ -96,6 +90,14 @@ type gzipResponseWriter struct {
 
 func (w *gzipResponseWriter) Write(b []byte) (int, error) {
 	return w.Writer.Write(b)
+}
+
+func (w *gzipResponseWriter) Header() http.Header {
+	return w.ResponseWriter.Header()
+}
+
+func (w *gzipResponseWriter) WriteHeader(statusCode int) {
+	w.ResponseWriter.WriteHeader(statusCode)
 }
 
 // GzipMiddleware обеспечивает сжатие ответов.
