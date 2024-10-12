@@ -6,12 +6,15 @@ import (
 	"fmt"
 	"go-url-shortener/internal/app/config"
 	"go-url-shortener/internal/app/handlers"
+	"go-url-shortener/internal/app/storage"
 	"log"
 	"net/http"
 	"os"
 	"strings"
 	"sync"
 	"time"
+
+	"errors"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -30,8 +33,6 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	_ = config.NewConfig()
 }
 
 // URLData представляет собой структуру для хранения данных URL.
@@ -47,24 +48,32 @@ type Server struct {
 	urlDataStore []URLData
 	mu           sync.Mutex
 	config       *config.Config
+	handlers     *handlers.Handlers
 }
 
 // NewServer создает новый экземпляр HTTP-сервера.
-func NewServer(conf *config.Config) *Server {
+func NewServer(conf *config.Config) (*Server, error) {
+	store := storage.NewStorage(conf.UrlsPath)
+	err := store.Load()
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("Failed to Load storage: %v", err))
+	}
+	h := handlers.NewHandlers(store)
 	s := &Server{
-		router:       SetupRoutes(),
+		router:       SetupRoutes(h),
 		config:       conf,
 		urlDataStore: make([]URLData, 0),
+		handlers:     h,
 	}
 
 	// Загрузка данных из файла при старте сервера.
-	if s.config.FilePath != "" {
+	if s.config.UrlsPath != "" {
 		if err := s.loadURLDataFromFile(); err != nil {
 			logger.Error("Failed to load URL data from file", zap.Error(err))
 		}
 	}
 
-	return s
+	return s, nil
 }
 
 // Start запускает HTTP-сервер с заданным адресом.
@@ -74,10 +83,10 @@ func (s *Server) Start(address string) {
 }
 
 // SetupRoutes настраивает роуты HTTP сервера. Включаем GzipMiddleware и LoggerMiddleware в цепочку middleware.
-func SetupRoutes() http.Handler {
+func SetupRoutes(h *handlers.Handlers) http.Handler {
 	router := http.NewServeMux()
-	router.Handle("/shorten", LoggerMiddleware(GzipMiddleware(http.HandlerFunc(handlers.ShortenHandler))))
-	router.Handle("/expand", LoggerMiddleware(GzipMiddleware(http.HandlerFunc(handlers.ExpandHandler))))
+	router.Handle("/shorten", LoggerMiddleware(GzipMiddleware(http.HandlerFunc(h.ShortenHandler))))
+	router.Handle("/expand", LoggerMiddleware(GzipMiddleware(http.HandlerFunc(h.ExpandHandler))))
 
 	return router
 }
@@ -161,7 +170,7 @@ func (s *Server) saveURLDataToFile() error {
 		return err
 	}
 
-	err = os.WriteFile(s.config.FilePath, data, 0644)
+	err = os.WriteFile(s.config.UrlsPath, data, 0644)
 	if err != nil {
 		logger.Error("Failed to write data to file", zap.Error(err))
 		return err
@@ -175,7 +184,7 @@ func (s *Server) loadURLDataFromFile() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	fileContent, err := os.ReadFile(s.config.FilePath)
+	fileContent, err := os.ReadFile(s.config.UrlsPath)
 	if err != nil {
 		logger.Error("Failed to read data from file", zap.Error(err))
 		return err
