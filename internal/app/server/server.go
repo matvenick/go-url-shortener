@@ -14,9 +14,21 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gorilla/mux"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
+
+// SetupRoutes настраивает роуты HTTP сервера. Включаем GzipMiddleware и LoggerMiddleware в цепочку middleware.
+func SetupRoutes(h *handlers.Handlers) http.Handler {
+	// "github.com/gorilla/mux"
+	router := mux.NewRouter()
+	// router := http.NewServeMux()
+	router.Handle("/", LoggerMiddleware(GzipMiddleware(http.HandlerFunc(h.ShortenHandler)))).Methods("POST")
+	router.Handle("/{shortURL}", LoggerMiddleware(GzipMiddleware(http.HandlerFunc(h.ExpandHandler)))).Methods("GET")
+
+	return router
+}
 
 var (
 	logger *zap.Logger
@@ -78,15 +90,6 @@ func NewServer(conf *config.Config) (*Server, error) {
 func (s *Server) Start(address string) {
 	fmt.Printf("Server is running on %s...\n", address)
 	log.Fatal(http.ListenAndServe(address, s.router))
-}
-
-// SetupRoutes настраивает роуты HTTP сервера. Включаем GzipMiddleware и LoggerMiddleware в цепочку middleware.
-func SetupRoutes(h *handlers.Handlers) http.Handler {
-	router := http.NewServeMux()
-	router.Handle("/shorten", LoggerMiddleware(GzipMiddleware(http.HandlerFunc(h.ShortenHandler))))
-	router.Handle("/expand", LoggerMiddleware(GzipMiddleware(http.HandlerFunc(h.ExpandHandler))))
-
-	return router
 }
 
 // gzipResponseWriter - новая структура для обновленного ResponseWriter.
