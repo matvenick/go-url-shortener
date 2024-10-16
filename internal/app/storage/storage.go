@@ -12,7 +12,7 @@ import (
 type Storage struct {
 	jsonPath string
 	urls     []*urlData
-	nextId   int
+	nextID   int
 }
 
 type urlData struct {
@@ -46,17 +46,17 @@ func (s *Storage) Load() error {
 			max = uuid
 		}
 	}
-	s.nextId = max + 1
+	s.nextID = max + 1
 	return nil
 }
 
 func (s *Storage) SaveURL(randomCode string, origURL string) error {
 	s.urls = append(s.urls, &urlData{
-		Uuid:        strconv.Itoa(s.nextId),
+		Uuid:        strconv.Itoa(s.nextID),
 		ShortUrl:    randomCode,
 		OriginalUrl: origURL,
 	})
-	s.nextId++
+	s.nextID++
 	bytes, err := json.Marshal(s.urls)
 	if err != nil {
 		return fmt.Errorf("failed Marshal: %v", err)

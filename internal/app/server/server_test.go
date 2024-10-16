@@ -1,4 +1,4 @@
-// Package server предоставляет тесты для основных компонентов HTTP-сервера.
+// Package shortener предоставляет тесты для основных компонентов HTTP-сервера.
 package server
 
 import (

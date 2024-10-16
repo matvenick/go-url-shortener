@@ -1,4 +1,4 @@
-// Package server предоставляет основные компоненты HTTP-сервера.
+// Package shortener предоставляет основные компоненты HTTP-сервера.
 package server
 
 import (

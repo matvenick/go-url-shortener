@@ -14,8 +14,6 @@ import (
 	"sync"
 	"time"
 
-	"errors"
-
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -56,7 +54,7 @@ func NewServer(conf *config.Config) (*Server, error) {
 	store := storage.NewStorage(conf.UrlsPath)
 	err := store.Load()
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("Failed to Load storage: %v", err))
+		return nil, fmt.Errorf("failed to Load storage: %v", err)
 	}
 	h := handlers.NewHandlers(store)
 	s := &Server{
