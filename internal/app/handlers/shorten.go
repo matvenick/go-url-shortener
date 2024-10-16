@@ -49,16 +49,6 @@ func (h *Handlers) ShortenHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// RequestBody - определение структуры тела запроса.
-type RequestBody struct {
-	URL string `json:"url"`
-}
-
-// ResponseBody - определение структуры тела ответа.
-type ResponseBody struct {
-	Result string `json:"result"`
-}
-
 func genRandomString() string {
 	res := ""
 	for i := 0; i < 8; i++ {
