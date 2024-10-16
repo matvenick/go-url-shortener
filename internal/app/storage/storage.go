@@ -16,9 +16,9 @@ type Storage struct {
 }
 
 type urlData struct {
-	Uuid        string `json:"uuid"`
-	ShortUrl    string `json:"short_url"`
-	OriginalUrl string `json:"original_url"`
+	UUID        string `json:"uuid"`
+	ShortURL    string `json:"short_url"`
+	OriginalURL string `json:"original_url"`
 }
 
 // NewStorage создаёт storage, который будет хранить данные
@@ -36,25 +36,25 @@ func (s *Storage) Load() error {
 	}
 	err = json.Unmarshal(bytes, &s.urls)
 	if err != nil {
-		return fmt.Errorf("Unmarshal failed: %v", err)
+		return fmt.Errorf("unmarshal failed: %v", err)
 	}
-	max := 0
+	m := 0
 	for _, u := range s.urls {
 		// ignore error here
-		uuid, _ := strconv.Atoi(u.Uuid)
-		if uuid > max {
-			max = uuid
+		uuid, _ := strconv.Atoi(u.UUID)
+		if uuid > m {
+			m = uuid
 		}
 	}
-	s.nextID = max + 1
+	s.nextID = m + 1
 	return nil
 }
 
 func (s *Storage) SaveURL(randomCode string, origURL string) error {
 	s.urls = append(s.urls, &urlData{
-		Uuid:        strconv.Itoa(s.nextID),
-		ShortUrl:    randomCode,
-		OriginalUrl: origURL,
+		UUID:        strconv.Itoa(s.nextID),
+		ShortURL:    randomCode,
+		OriginalURL: origURL,
 	})
 	s.nextID++
 	bytes, err := json.Marshal(s.urls)
@@ -70,8 +70,8 @@ func (s *Storage) SaveURL(randomCode string, origURL string) error {
 
 func (s *Storage) LoadURL(code string) (string, error) {
 	for _, u := range s.urls {
-		if u.ShortUrl == code {
-			return u.OriginalUrl, nil
+		if u.ShortURL == code {
+			return u.OriginalURL, nil
 		}
 	}
 	return "", fmt.Errorf("no url found by code %v", code)
