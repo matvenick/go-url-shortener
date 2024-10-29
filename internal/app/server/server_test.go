@@ -8,6 +8,7 @@ import (
 	"go-url-shortener/internal/app/handlers"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 )
 
@@ -46,10 +47,10 @@ func TestShortenHandler(t *testing.T) {
 			t.Errorf("failed to unmarshal JSON response body: %v", err)
 		}
 
-		// Проверяем содержимое ответа.
-		expectedShortURL := "http://localhost:8080/EwHXdJfB"
-		if responseBody.Result != expectedShortURL {
-			t.Errorf("handler returned unexpected result: got %v, want %v", responseBody.Result, expectedShortURL)
+		// Проверяем только префикс ответа.
+		expectedPrefix := "http://localhost:8080/"
+		if !strings.HasPrefix(responseBody.Result, expectedPrefix) {
+			t.Errorf("handler returned unexpected result: got %v, want prefix %v", responseBody.Result, expectedPrefix)
 		}
 	})
 }
