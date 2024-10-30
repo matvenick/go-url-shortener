@@ -4,19 +4,20 @@ package server
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/gorilla/mux"
 	"go-url-shortener/internal/app/handlers"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/gorilla/mux"
 )
 
 func TestShortenHandler(t *testing.T) {
 	// Тест для эндпоинта /api/shorten.
 	t.Run("/api/shorten", func(t *testing.T) {
 		// Подготавливаем тестовый запрос с JSON-телом.
-		requestBody := handlers.RequestBody{URL: "https://practicum.yandex.ru"}
+		requestBody := handlers.ShortenHandlerRequestBody{URL: "https://practicum.yandex.ru"}
 		jsonBody, err := json.Marshal(requestBody)
 		if err != nil {
 			t.Fatal(err)
@@ -41,7 +42,7 @@ func TestShortenHandler(t *testing.T) {
 		}
 
 		// Проверяем формат ответа.
-		var responseBody handlers.ResponseBody
+		var responseBody handlers.ShortenHandlerResponseBody
 		err = json.Unmarshal(rr.Body.Bytes(), &responseBody)
 		if err != nil {
 			t.Errorf("failed to unmarshal JSON response body: %v", err)

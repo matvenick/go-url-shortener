@@ -26,6 +26,7 @@ func SetupRoutes(h *handlers.Handlers) http.Handler {
 	// router := http.NewServeMux()
 	router.Handle("/", LoggerMiddleware(GzipMiddleware(http.HandlerFunc(h.ShortenHandler)))).Methods("POST")
 	router.Handle("/{shortURL}", LoggerMiddleware(GzipMiddleware(http.HandlerFunc(h.ExpandHandler)))).Methods("GET")
+	router.Handle("/api/shorten", LoggerMiddleware(GzipMiddleware(http.HandlerFunc(h.JSONShortenHandler)))).Methods("POST")
 
 	return router
 }

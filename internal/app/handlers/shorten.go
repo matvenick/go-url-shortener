@@ -2,6 +2,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -11,17 +12,6 @@ import (
 
 func (h *Handlers) ShortenHandler(w http.ResponseWriter, r *http.Request) {
 	url, _ := io.ReadAll(r.Body)
-	// log.Println("data")
-	// log.Println(string(data))
-
-	// var requestBody RequestBody
-
-	// Декодируем JSON-тело запроса в структуру RequestBody.
-	// decoder := json.NewDecoder(r.Body)
-	// if err := decoder.Decode(&requestBody); err != nil {
-	// http.Error(w, "Failed to decode JSON request body", http.StatusBadRequest)
-	// return
-	// }
 
 	// Вызываем функцию для генерации короткой ссылки.
 	randString := genRandomString()
@@ -34,16 +24,6 @@ func (h *Handlers) ShortenHandler(w http.ResponseWriter, r *http.Request) {
 
 	resultURL := fmt.Sprintf("%v/%v", h.conf.BaseURL, randString)
 
-	// Формируем JSON-ответ.
-	// responseBody := ResponseBody{
-	// 	Result: resultURL,
-	// }
-	// responseJSON, err := json.Marshal(responseBody)
-	// if err != nil {
-	// 	http.Error(w, "Failed to encode JSON response", http.StatusInternalServerError)
-	// 	return
-	// }
-
 	// Отправляем ответ клиенту с поддержкой сжатия.
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
@@ -53,6 +33,53 @@ func (h *Handlers) ShortenHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to write JSON response", http.StatusInternalServerError)
 		return
 	}
+}
+
+func (h *Handlers) JSONShortenHandler(w http.ResponseWriter, r *http.Request) {
+	var requestBody ShortenHandlerRequestBody
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&requestBody); err != nil {
+		http.Error(w, "Failed to decode JSON request body", http.StatusBadRequest)
+		return
+	}
+
+	randString := genRandomString()
+
+	err := h.store.SaveURL(randString, requestBody.URL)
+	if err != nil {
+		http.Error(w, "Failed to decode JSON request body", http.StatusInternalServerError)
+		return
+	}
+
+	resultURL := fmt.Sprintf("%v/%v", h.conf.BaseURL, randString)
+
+	responseJSON, err := json.Marshal(ShortenHandlerResponseBody{
+		Result: resultURL,
+	})
+	if err != nil {
+		http.Error(w, "Failed to encode JSON response", http.StatusInternalServerError)
+		return
+	}
+
+	// Отправляем ответ клиенту с поддержкой сжатия.
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+
+	// Записываем JSON-ответ в ResponseWriter с обработкой возможной ошибки.
+	if _, err := w.Write(responseJSON); err != nil {
+		http.Error(w, "Failed to write JSON response", http.StatusInternalServerError)
+		return
+	}
+}
+
+// ShortenHandlerRequestBody - определение структуры тела запроса.
+type ShortenHandlerRequestBody struct {
+	URL string `json:"url"`
+}
+
+// ShortenHandlerResponseBody - определение структуры тела ответа.
+type ShortenHandlerResponseBody struct {
+	Result string `json:"result"`
 }
 
 func genRandomString() string {
