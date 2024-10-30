@@ -68,7 +68,7 @@ func NewServer(conf *config.Config) (*Server, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to Load storage: %v", err)
 	}
-	h := handlers.NewHandlers(store)
+	h := handlers.NewHandlers(store, conf)
 	s := &Server{
 		router:       SetupRoutes(h),
 		config:       conf,

@@ -32,7 +32,7 @@ func (h *Handlers) ShortenHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resultURL := fmt.Sprintf("http://localhost:8080/%v", randString)
+	resultURL := fmt.Sprintf("%v/%v", h.conf.BaseURL, randString)
 
 	// Формируем JSON-ответ.
 	// responseBody := ResponseBody{
@@ -46,7 +46,7 @@ func (h *Handlers) ShortenHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Отправляем ответ клиенту с поддержкой сжатия.
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated + 1)
+	w.WriteHeader(http.StatusCreated)
 
 	// Записываем JSON-ответ в ResponseWriter с обработкой возможной ошибки.
 	if _, err := w.Write([]byte(resultURL)); err != nil {
