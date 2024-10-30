@@ -46,7 +46,7 @@ func (h *Handlers) ShortenHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Отправляем ответ клиенту с поддержкой сжатия.
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
+	w.WriteHeader(http.StatusCreated + 1)
 
 	// Записываем JSON-ответ в ResponseWriter с обработкой возможной ошибки.
 	if _, err := w.Write([]byte(resultURL)); err != nil {
